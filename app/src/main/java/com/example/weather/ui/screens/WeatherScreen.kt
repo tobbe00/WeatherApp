@@ -1,5 +1,6 @@
 package com.example.weather.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -7,9 +8,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import com.example.weather.ui.utils.getWeatherIcon
 import com.example.weather.ui.viewmodels.WeatherViewModel
 
 @Composable
@@ -75,7 +80,7 @@ fun WeatherScreen(weatherViewModel: WeatherViewModel) {
         } ?: Text("No weather data available", modifier = Modifier.padding(top = 16.dp))
     }
 }
-
+/*
 @Composable
 fun WeatherItem(time: String, temperature: Float, weatherCode: Int) {
     Row(
@@ -86,5 +91,32 @@ fun WeatherItem(time: String, temperature: Float, weatherCode: Int) {
         Text(text = "Time: $time", modifier = Modifier.weight(1f))
         Text(text = "Temp: $temperature°C", modifier = Modifier.weight(1f))
         Text(text = "Weather Code: $weatherCode", modifier = Modifier.weight(1f))
+    }
+}
+
+ */
+
+@Composable
+fun WeatherItem(time: String, temperature: Float, weatherCode: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Time
+        Text(text = "Time: $time", modifier = Modifier.weight(1f))
+
+        // Temperature
+        Text(text = "Temp: $temperature°C", modifier = Modifier.weight(1f))
+
+        // Weather Icon
+        Image(
+            painter = painterResource(id = getWeatherIcon(weatherCode)),
+            contentDescription = "Weather Icon",
+            modifier = Modifier
+                .size(40.dp)
+                .padding(4.dp)
+        )
     }
 }
