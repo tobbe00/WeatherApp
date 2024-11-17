@@ -2,8 +2,10 @@ package com.example.weather.ui.viewmodels
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.ConnectivityManager
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weather.models.WeatherResponse
@@ -102,6 +104,14 @@ class WeatherViewModel(private val context: Context) : ViewModel() {
     private fun loadWeatherData(): WeatherResponse? {
         val json = sharedPrefs.getString("weather_data", null) ?: return null
         return gson.fromJson(json, WeatherResponse::class.java)
+    }
+
+    @Composable
+    fun isInternetAvailable(context: Context): Boolean {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork = connectivityManager.activeNetworkInfo
+        return activeNetwork?.isConnected == true
     }
 }
 

@@ -6,13 +6,16 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +34,35 @@ fun WeatherScreen(weatherViewModel: WeatherViewModel) {
     // Collect the two separate data streams
     val todayHourlyData = weatherViewModel.todayHourlyData.collectAsState().value
     val weeklyMinMaxData = weatherViewModel.weeklyMinMaxData.collectAsState().value
+
+    val context = LocalContext.current // Get the Context
+    val internetAvailable = weatherViewModel.isInternetAvailable(context)
+    val showDialog = remember { mutableStateOf(false) }
+    var checkedInternet by remember { mutableStateOf(false) } // Ensures one-time check
+
+    LaunchedEffect(internetAvailable) {
+        if (!checkedInternet && !internetAvailable) {
+            showDialog.value = true
+            checkedInternet = true
+        }
+    }
+
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = { /* Prevent dismissal */ },
+            confirmButton = {
+                Button(onClick = {
+                    // Load old data and dismiss dialog
+                    //weatherViewModel.loadOldWeatherData()  // Implement the function
+                    showDialog.value = false
+                }) {
+                    Text("Load Old Data")
+                }
+            },
+            title = { Text("No Internet Connection") },
+            text = { Text("You are offline. Load old weather data?") }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -79,7 +111,7 @@ fun WeatherScreen(weatherViewModel: WeatherViewModel) {
             item {
                 Text(
                     "Today's Hourly Weather",
-                    style = androidx.compose.material3.MaterialTheme.typography.bodyLarge.copy(
+                    style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Bold, // Make the text bold
                         fontSize = 20.sp,             // Adjust the size if necessary
                         color = Color.Black          // Optional: Change the color to make it stand out more
@@ -97,7 +129,7 @@ fun WeatherScreen(weatherViewModel: WeatherViewModel) {
             item {
                 Text(
                     "Weekly Forecast (Min/Max)",
-                    style = androidx.compose.material3.MaterialTheme.typography.bodyLarge.copy(
+                    style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Bold, // Make the text bold
                         fontSize = 20.sp,             // Adjust the size if necessary
                         color = Color.Black          // Optional: Change the color to make it stand out more
