@@ -31,36 +31,36 @@ fun WeatherScreen(weatherViewModel: WeatherViewModel) {
     var latitude by remember { mutableStateOf(TextFieldValue("")) }
     var longitude by remember { mutableStateOf(TextFieldValue("")) }
 
-    // Collect the two separate data streams
+    // Data streams for hourly and weekly weather data
     val todayHourlyData = weatherViewModel.todayHourlyData.collectAsState().value
     val weeklyMinMaxData = weatherViewModel.weeklyMinMaxData.collectAsState().value
 
-    val context = LocalContext.current // Get the Context
-    val internetAvailable = weatherViewModel.isInternetAvailable(context)
-    val showDialog = remember { mutableStateOf(false) }
-    var checkedInternet by remember { mutableStateOf(false) } // Ensures one-time check
+    val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
 
+    // Check internet availability
+    val internetAvailable = weatherViewModel.isInternetAvailable(context)
+
+    // Show dialog if there's no internet connection
     LaunchedEffect(internetAvailable) {
-        if (!checkedInternet && !internetAvailable) {
-            showDialog.value = true
-            checkedInternet = true
+        if (!internetAvailable) {
+            showDialog = true
         }
     }
 
-    if (showDialog.value) {
+    if (showDialog) {
         AlertDialog(
             onDismissRequest = { /* Prevent dismissal */ },
             confirmButton = {
                 Button(onClick = {
-                    // Load old data and dismiss dialog
-                    //weatherViewModel.loadOldWeatherData()  // Implement the function
-                    showDialog.value = false
+                    weatherViewModel.loadOldWeatherData()
+                    showDialog = false
                 }) {
                     Text("Load Old Data")
                 }
             },
             title = { Text("No Internet Connection") },
-            text = { Text("You are offline. Load old weather data?") }
+            text = { Text("You are offline. Using cached weather data.") }
         )
     }
 
@@ -91,7 +91,7 @@ fun WeatherScreen(weatherViewModel: WeatherViewModel) {
                 val lat = latitude.text.toFloatOrNull()
                 val lon = longitude.text.toFloatOrNull()
                 if (lat != null && lon != null) {
-                    weatherViewModel.fetchWeather(lat, lon)
+                    weatherViewModel.fetchWeather(lat, lon, context)
                 }
             },
             modifier = Modifier
@@ -103,18 +103,18 @@ fun WeatherScreen(weatherViewModel: WeatherViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Combined LazyColumn to scroll through both hourly and weekly forecast
+        // Display weather data
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
             // Section 1: Today's Hourly Weather
             item {
                 Text(
-                    "Today's Hourly Weather",
+                    text = "Today's Hourly Weather",
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold, // Make the text bold
-                        fontSize = 20.sp,             // Adjust the size if necessary
-                        color = Color.Black          // Optional: Change the color to make it stand out more
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = Color.Black
                     )
                 )
             }
@@ -123,16 +123,18 @@ fun WeatherScreen(weatherViewModel: WeatherViewModel) {
                 WeatherItem(time, temperature, weatherCode)
             }
 
-            //Spacer(modifier = Modifier.height(16.dp))
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             // Section 2: Weekly Min/Max Temperatures
             item {
                 Text(
-                    "Weekly Forecast (Min/Max)",
+                    text = "Weekly Forecast (Min/Max)",
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold, // Make the text bold
-                        fontSize = 20.sp,             // Adjust the size if necessary
-                        color = Color.Black          // Optional: Change the color to make it stand out more
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = Color.Black
                     )
                 )
             }
@@ -143,6 +145,7 @@ fun WeatherScreen(weatherViewModel: WeatherViewModel) {
         }
     }
 }
+
 
 @Composable
 fun WeatherItem(time: String, temperature: Float, weatherCode: Int) {
