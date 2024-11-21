@@ -28,8 +28,18 @@ import com.example.weather.ui.viewmodels.WeatherViewModel
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun WeatherScreen(weatherViewModel: WeatherViewModel) {
+    var placeName by remember { mutableStateOf(TextFieldValue("")) }
     var latitude by remember { mutableStateOf(TextFieldValue("")) }
     var longitude by remember { mutableStateOf(TextFieldValue("")) }
+    val coordinates by weatherViewModel.coordinates.collectAsState()
+
+    // Automatically update latitude and longitude when coordinates change
+    LaunchedEffect(coordinates) {
+        coordinates?.let { (lat, lon) ->
+            latitude = TextFieldValue(lat.toString())  // Set latitude field
+            longitude = TextFieldValue(lon.toString())  // Set longitude field
+        }
+    }
 
     // Data streams for hourly and weekly weather data
     val todayHourlyData = weatherViewModel.todayHourlyData.collectAsState().value
@@ -69,18 +79,43 @@ fun WeatherScreen(weatherViewModel: WeatherViewModel) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // Input field for place name
+        OutlinedTextField(
+            value = placeName,
+            onValueChange = { placeName = it },
+            label = { Text("Enter Place Name") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Button(
+            onClick = {
+                weatherViewModel.fetchCoordinatesForPlace(placeName.text,context)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+        ) {
+            Text("Get Coordinates")
+        }
+
+        // Update latitude and longitude if coordinates are available
+        coordinates?.let { (lat, lon) ->
+            latitude = TextFieldValue(lat.toString())
+            longitude = TextFieldValue(lon.toString())
+        }
+
         // Input fields for latitude and longitude
         OutlinedTextField(
             value = latitude,
             onValueChange = { latitude = it },
-            label = { Text("Enter Latitude") },
+            label = { Text("Latitude") },
             modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
             value = longitude,
             onValueChange = { longitude = it },
-            label = { Text("Enter Longitude") },
+            label = { Text("Longitude") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp)
