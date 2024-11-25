@@ -29,17 +29,6 @@ import com.example.weather.ui.viewmodels.WeatherViewModel
 @Composable
 fun WeatherScreen(weatherViewModel: WeatherViewModel) {
     var placeName by remember { mutableStateOf(TextFieldValue("")) }
-    var latitude by remember { mutableStateOf(TextFieldValue("")) }
-    var longitude by remember { mutableStateOf(TextFieldValue("")) }
-    val coordinates by weatherViewModel.coordinates.collectAsState()
-
-    // Automatically update latitude and longitude when coordinates change
-    LaunchedEffect(coordinates) {
-        coordinates?.let { (lat, lon) ->
-            latitude = TextFieldValue(lat.toString())  // Set latitude field
-            longitude = TextFieldValue(lon.toString())  // Set longitude field
-        }
-    }
 
     // Data streams for hourly and weekly weather data
     val todayHourlyData = weatherViewModel.todayHourlyData.collectAsState().value
@@ -89,45 +78,8 @@ fun WeatherScreen(weatherViewModel: WeatherViewModel) {
 
         Button(
             onClick = {
-                weatherViewModel.fetchCoordinatesForPlace(placeName.text,context)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        ) {
-            Text("Get Coordinates")
-        }
-
-        // Update latitude and longitude if coordinates are available
-        coordinates?.let { (lat, lon) ->
-            latitude = TextFieldValue(lat.toString())
-            longitude = TextFieldValue(lon.toString())
-        }
-
-        // Input fields for latitude and longitude
-        OutlinedTextField(
-            value = latitude,
-            onValueChange = { latitude = it },
-            label = { Text("Latitude") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = longitude,
-            onValueChange = { longitude = it },
-            label = { Text("Longitude") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        )
-
-        Button(
-            onClick = {
-                val lat = latitude.text.toFloatOrNull()
-                val lon = longitude.text.toFloatOrNull()
-                if (lat != null && lon != null) {
-                    weatherViewModel.fetchWeather(lat, lon, context)
-                }
+                // Fetch coordinates based on place name
+                weatherViewModel.fetchCoordinatesForPlace(placeName.text, context)
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -180,6 +132,7 @@ fun WeatherScreen(weatherViewModel: WeatherViewModel) {
         }
     }
 }
+
 
 
 @Composable
